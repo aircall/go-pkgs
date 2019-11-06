@@ -1,4 +1,4 @@
-module github.com/aircall/go-pkgs/aws-lambda/lambbar
+module github.com/aircall/go-pkgs/aws-lambda/monida
 
 go 1.13
 
