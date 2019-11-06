@@ -1,5 +1,6 @@
-// Package lambbar provides a wrapper to run aws lambda with rollbar, along with contextualized errors that can automatically be sent to rollbar and stdout (-> cloudwatch)
-package lambbar
+// Package monida provides a wrapper to monitor your lambda functions, along with contextualized errors that can automatically be sent to alerting systems
+// (currently rollbar and stdout, _a.k.a._ cloudwatch)
+package monida
 
 import (
 	"context"
@@ -47,32 +48,28 @@ func WrapAndStart(handler interface{}) {
 }
 
 // NewErr creates a ErrWithContext with empty context
-func NewErr(msg string, err error) ErrWithContext {
-	return ErrWithContext{
-		Msg: msg,
-		Ctx: context.TODO(),
-		Err: err,
-	}
+func NewErr(err error, msg string, args ...interface{}) ErrWithContext {
+	return NewErrWithContext(context.TODO(), err, msg, args...)
 }
 
 // NewErrWithContext returns a new ErrWithContext struct
-func NewErrWithContext(ctx context.Context, msg string, err error) ErrWithContext {
+func NewErrWithContext(ctx context.Context, err error, msg string, args ...interface{}) ErrWithContext {
 	return ErrWithContext{
-		Msg: msg,
+		Msg: fmt.Sprintf(msg, args...),
 		Ctx: ctx,
 		Err: err,
 	}
 }
 
 // LogErrWithContext creates and send a ErrWithContext
-func LogErrWithContext(ctx context.Context, msg string, err error) {
-	lerr := NewErrWithContext(ctx, msg, err)
+func LogErrWithContext(ctx context.Context, err error, msg string, args ...interface{}) {
+	lerr := NewErrWithContext(ctx, err, msg, args...)
 	lerr.Log()
 }
 
 // LogErr creates and send an error without any context
-func LogErr(msg string, err error) {
-	lerr := NewErr(msg, err)
+func LogErr(err error, msg string, args ...interface{}) {
+	lerr := NewErr(err, msg, args...)
 	lerr.Log()
 }
 
@@ -94,7 +91,7 @@ func (e ErrWithContext) Error() string { return e.Msg + ": " + e.Err.Error() }
 // Unwrap returns the wrapped error
 func (e *ErrWithContext) Unwrap() error { return e.Err }
 
-// Log sends the error to both stdout and rollbar
+// Log sends the error to both stdout and rollbar.
 func (e ErrWithContext) Log() {
 	log.Println(e.Error())
 	rollbar.ErrorWithExtrasAndContext(e.Ctx, "error", e, nil)
