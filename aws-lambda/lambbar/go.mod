@@ -1,4 +1,4 @@
-module github.com/aircall/go-pkgs/aws-lambda/lambdar
+module github.com/aircall/go-pkgs/aws-lambda/lambbar
 
 go 1.13
 
