@@ -42,9 +42,7 @@ func WrapAndStart(handler interface{}) {
 	if initError != nil {
 		panic(initError)
 	}
-	rollbar.WrapAndWait(func() {
-		lambda.Start(handler)
-	})
+	lambda.Start(rollbar.LambdaWrapper(handler))
 }
 
 // NewErr creates a ErrWithContext with empty context
